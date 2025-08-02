@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <string>
 #include <queue>
+#include <cstring>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ int dir[8][2] = { { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 },
 int startI, startJ, houseCount;
 bool heightAdded[1000001] = {};
 int height[2500];
-int visit[50][50] = {};
+bool visit[50][50] = {};
 int tired = 1000001;
 
 int search(int high, int low, int curI, int curJ) {
@@ -83,12 +84,15 @@ int main() {
 	int result = 0;
 
 	while (minheight <= maxheight && maxheight <= height[heightIndex - 1]) { //check end condition
-		//if (heightMap[startI][startJ] < minheight || heightMap[startI][startJ] > maxheight) continue;
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < N; j++) {
-				if (visit[i][i]) visit[i][j] = 0;
+		if (heightMap[startI][startJ] < minheight || heightMap[startI][startJ] > maxheight) {
+			if (heightMap[startI][startJ] > maxheight) {
+				maxheight = heightMap[startI][startJ];
+				continue;
 			}
+			else if (heightMap[startI][startJ] < minheight) break;
 		}
+
+		memset(visit, 0x00, sizeof(visit));
 
 		result = search(maxheight, minheight, startI, startJ);
 		if (result >= houseCount) { //update tired
@@ -99,8 +103,12 @@ int main() {
 		else if (result < houseCount) {
 			maxheight++;
 		}
+		//cout << result << '\n';
 	}
 
 	cout << tired << '\n';
+
+
 	return 0;
+
 }
