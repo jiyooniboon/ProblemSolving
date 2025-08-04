@@ -17,7 +17,6 @@ int dir[8][2] = {
 int startI, startJ, houseCount;
 bool heightAdded[1000001] = {};
 int height[2500];
-bool visit[50][50] = {};
 int tired = 1000001;
 
 int search(int high, int low, int curI, int curJ) { //bfs
@@ -103,8 +102,6 @@ int main() {
 
         if (heightMap[startI][startJ] < height[minheight]) break;
 
-        //memset(visit, 0x00, sizeof(visit));
-
         result = search(height[maxheight], height[minheight], startI, startJ);
         if (result >= houseCount) {
             //update tired
@@ -117,7 +114,6 @@ int main() {
     }
 
     cout << tired << '\n';
-
 
     return 0;
 }
