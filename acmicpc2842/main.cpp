@@ -7,10 +7,12 @@
 using namespace std;
 
 int N;
-int map[50][50];
-int heightMap[50][50];
-int dir[8][2] = { { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 },
-					{ 1, 1 }, { -1, 1 }, { 1, -1 }, { -1, -1 } };
+int map[51][51];
+int heightMap[51][51];
+int dir[8][2] = {
+    {0, 1}, {0, -1}, {1, 0}, {-1, 0},
+    {1, 1}, {-1, 1}, {1, -1}, {-1, -1}
+};
 
 int startI, startJ, houseCount;
 bool heightAdded[1000001] = {};
@@ -18,97 +20,104 @@ int height[2500];
 bool visit[50][50] = {};
 int tired = 1000001;
 
-int search(int high, int low, int curI, int curJ) {
-	int house = 0;
-	if (heightMap[curI][curJ] > high || heightMap[curI][curJ] < low) return 0;
+int search(int high, int low, int curI, int curJ) { //bfs
+    int house = 0;
+    bool visit[51][51] = {0};
+    queue<pair<int, int>> q;
+    if (heightMap[curI][curJ] > high || heightMap[curI][curJ] < low) return 0;
 
-	if (map[curI][curJ] == 'K') house++;
+    q.push({curI, curJ});
+    visit[curI][curJ] = true;
 
-	for (int i = 0; i < 8; i++) {
-		int nextI = curI + dir[i][0];
-		int nextJ = curJ + dir[i][1];
-		if (nextI < 0 || nextI > N || nextJ < 0 || nextJ > N) continue;
-		if (heightMap[nextI][nextJ] < low || heightMap[nextI][nextJ] > high) continue;
-		if (visit[nextI][nextJ]) continue;
+    while(!q.empty()) {
+        int x = q.front().first;
+        int y = q.front().second;
+        q.pop();
+        for(int i = 0; i < 8; i++) {
+            int nexti = x + dir[i][0];
+            int nextj = y + dir[i][1];
+            if (visit[nexti][nextj]) continue;
+            if (nexti < 0 || nexti > N || nextj < 0 || nextj > N) continue;
+            if (heightMap[nexti][nextj] < low || heightMap[nexti][nextj] > high) continue;
+            if (map[nexti][nextj] == 'K') house++;
+            q.push({nexti, nextj});
+            visit[nexti][nextj] = true;
 
-		visit[nextI][nextJ] = true;
-		house += search(high, low, nextI, nextJ);
-	}
+            if (house == houseCount) return house;
+        }
+    }
 
-	return house;
+    return house;
 
 }
 
 int main() {
-	ios_base::sync_with_stdio(false);
-	cin.tie(NULL);
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
 
-	cin >> N;
+    cin >> N;
 
-	houseCount = 0;
+    houseCount = 0;
 
-	for (int i = 0; i < N; i++) {
-		string str;
-		cin >> str;
+    for (int i = 0; i < N; i++) {
+        string str;
+        cin >> str;
 
-		for (int j = 0; j < N; j++) {
-			map[i][j] = str[j];
-			if (map[i][j] == 'P') {
-				startI = i;
-				startJ = j;
-			}
-			else if (map[i][j] == 'K') {
-				houseCount++;
-			}
-		}
-	}
+        for (int j = 0; j < N; j++) {
+            map[i][j] = str[j];
+            if (map[i][j] == 'P') {
+                startI = i;
+                startJ = j;
+            } else if (map[i][j] == 'K') {
+                houseCount++;
+            }
+        }
+    }
 
-	int heightIndex = 0;
+    int heightIndex = 0;
 
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < N; j++) {
-			cin >> heightMap[i][j];
-			int cur = heightMap[i][j];
-			if (heightAdded[cur]) continue;
-			heightAdded[cur] = true;
-			height[heightIndex] = cur;
-			heightIndex++;
-		}
-	}
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            cin >> heightMap[i][j];
+            int cur = heightMap[i][j];
+            if (heightAdded[cur]) continue;
+            heightAdded[cur] = true;
+            height[heightIndex] = cur;
+            heightIndex++;
+        }
+    }
 
-	sort(height, height + heightIndex);
+    sort(height, height + heightIndex);
 
-	int minheight = height[0];
-	int maxheight = height[0];
+    int minheight = 0;
+    int maxheight = 0;
 
-	int result = 0;
+    int result = 0;
 
-	while (minheight <= maxheight && maxheight <= height[heightIndex - 1]) { //check end condition
-		if (heightMap[startI][startJ] < minheight || heightMap[startI][startJ] > maxheight) {
-			if (heightMap[startI][startJ] > maxheight) {
-				maxheight = heightMap[startI][startJ];
-				continue;
-			}
-			else if (heightMap[startI][startJ] < minheight) break;
-		}
+    while (minheight <= maxheight && maxheight <= heightIndex - 1) {
+        //check end condition
+        if (heightMap[startI][startJ] > height[maxheight]) {
+            maxheight++;
+            continue;
+        }
 
-		memset(visit, 0x00, sizeof(visit));
+        if (heightMap[startI][startJ] < height[minheight]) break;
 
-		result = search(maxheight, minheight, startI, startJ);
-		if (result >= houseCount) { //update tired
-			int newtired = maxheight - minheight;
-			tired = min(tired, newtired);
-			minheight++;
-		}
-		else if (result < houseCount) {
-			maxheight++;
-		}
-		//cout << result << '\n';
-	}
+        //memset(visit, 0x00, sizeof(visit));
 
-	cout << tired << '\n';
+        result = search(height[maxheight], height[minheight], startI, startJ);
+        if (result >= houseCount) {
+            //update tired
+            int newtired = height[maxheight] - height[minheight];
+            tired = min(tired, newtired);
+            minheight++;
+        } else if (result < houseCount) {
+            maxheight++;
+        }
+    }
+
+    cout << tired << '\n';
 
 
-	return 0;
-
+    return 0;
 }
